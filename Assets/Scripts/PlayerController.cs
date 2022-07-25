@@ -8,6 +8,8 @@ public class PlayerController : MonoBehaviour
     public float speed;
     public float gravity;
     public float jumpHeight;
+    public float airDrag;
+    public float groundDrag;
 
     [Header("Ground Check")]
     public LayerMask groundMask;
@@ -35,19 +37,38 @@ public class PlayerController : MonoBehaviour
         Move();
 
         if (Input.GetKey(KeyCode.Space) && isGrounded) Jump();
+        if (Input.GetKeyDown(KeyCode.E) && isGrounded) ApplyForce();
 
+        ApplyDrag();
         ApplyGravity();
+        controller.Move(velocity * Time.deltaTime);
     }
 
     void ApplyGravity()
     {
         velocity.y -= gravity * Time.deltaTime;
 
-        controller.Move(velocity * Time.deltaTime);
-
         if (isGrounded && velocity.y < 0) {
             velocity.y = -2f;
         }
+    }
+    void ApplyDrag()
+    {
+        Vector3 flatVel = new Vector3(velocity.x, 0, velocity.z);
+        if (flatVel.magnitude <= 0.5f) {
+            velocity = new Vector3(0, velocity.y, 0);
+        } else {
+            if (isGrounded) {
+                velocity -= flatVel.normalized * groundDrag;
+            } else {
+                velocity -= flatVel.normalized * airDrag;
+            }
+        }
+    }
+
+    void ApplyForce()
+    {
+        velocity = new Vector3(0, 5, 20);
     }
 
     void Jump()
@@ -70,6 +91,6 @@ public class PlayerController : MonoBehaviour
     {
         Vector3 moveDir = (playerObj.right * hInput + playerObj.forward * vInput).normalized;
 
-        controller.Move(moveDir * speed * Time.deltaTime);
+        controller.Move(speed * Time.deltaTime * moveDir);
     }
 }

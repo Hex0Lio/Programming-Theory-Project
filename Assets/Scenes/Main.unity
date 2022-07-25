@@ -325,6 +325,8 @@ MonoBehaviour:
   speed: 5
   gravity: 19.62
   jumpHeight: 3
+  airDrag: 0.1
+  groundDrag: 0.5
   groundMask:
     serializedVersion: 2
     m_Bits: 64
