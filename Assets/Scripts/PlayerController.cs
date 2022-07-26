@@ -3,29 +3,44 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     public Transform playerObj;
+    Rigidbody playerRb;
 
-    [Header("Variables")]
+    [Header("Movement")]
     public float speed;
-    public float gravity;
-    public float jumpHeight;
-    public float airDrag;
     public float groundDrag;
+    Vector3 moveDir;
+    float hInput;
+    float vInput;
 
     [Header("Ground Check")]
     public LayerMask groundMask;
     public float checkRadius;
     public Transform checkPos;
-
-    CharacterController controller;
-    float hInput;
-    float vInput;
     bool isGrounded;
-    Vector3 velocity;
+
+    [Header("Jumping")]
+    public float jumpHeight;
+    public float jumpCooldown;
+    public float airMultiplier;
+    bool readyToJump = true;
+
+    [Header("Step Climb")]
+    public Transform lowerRay;
+    public Transform upperRay;
+    public float stepHeight;
+    public float stepSmooth;
+
+    [Header("Slope Climb")]
+    public float maxClimbAngle;
+    RaycastHit slopeHit;
+    bool exitingSlope;
 
     // Start is called before the first frame update
     void Start()
     {
-        controller = GetComponent<CharacterController>();
+        playerRb = GetComponent<Rigidbody>();
+
+        upperRay.position = new Vector3(upperRay.position.x, stepHeight, upperRay.position.z);
     }
 
     // Update is called once per frame
@@ -34,63 +49,118 @@ public class PlayerController : MonoBehaviour
         DoGroundCheck();
 
         InputListener();
+        
+        AddGroundDrag();
+        ControlSpeed();
+    }
+
+    void FixedUpdate()
+    {
         Move();
-
-        if (Input.GetKey(KeyCode.Space) && isGrounded) Jump();
-        if (Input.GetKeyDown(KeyCode.E) && isGrounded) ApplyForce();
-
-        ApplyDrag();
-        ApplyGravity();
-        controller.Move(velocity * Time.deltaTime);
-    }
-
-    void ApplyGravity()
-    {
-        velocity.y -= gravity * Time.deltaTime;
-
-        if (isGrounded && velocity.y < 0) {
-            velocity.y = -2f;
-        }
-    }
-    void ApplyDrag()
-    {
-        Vector3 flatVel = new Vector3(velocity.x, 0, velocity.z);
-        if (flatVel.magnitude <= 0.5f) {
-            velocity = new Vector3(0, velocity.y, 0);
-        } else {
-            if (isGrounded) {
-                velocity -= flatVel.normalized * groundDrag;
-            } else {
-                velocity -= flatVel.normalized * airDrag;
-            }
-        }
-    }
-
-    void ApplyForce()
-    {
-        velocity = new Vector3(0, 5, 20);
-    }
-
-    void Jump()
-    {
-        velocity.y = Mathf.Sqrt(2 * gravity * jumpHeight);
-    }
-
-    void DoGroundCheck()
-    {
-        isGrounded = Physics.CheckSphere(checkPos.position, checkRadius, groundMask);
+        StepClimb();
     }
 
     void InputListener()
     {
         hInput = Input.GetAxisRaw("Horizontal");
         vInput = Input.GetAxisRaw("Vertical");
+
+        if (Input.GetKey(KeyCode.Space) && isGrounded && readyToJump) {
+            readyToJump = false;
+            Jump();
+            Invoke(nameof(ResetJump), jumpCooldown);
+        }
+    }
+
+    void DoGroundCheck() => isGrounded = Physics.CheckSphere(checkPos.position, checkRadius, groundMask);
+
+    void AddGroundDrag()
+    {
+        if (isGrounded)
+            playerRb.drag = groundDrag;
+        else
+            playerRb.drag = 0f;
+    }
+    void ControlSpeed()
+    {
+        if (IsOnSlope() && !exitingSlope) {
+            if (playerRb.velocity.magnitude > speed) {
+                playerRb.velocity = playerRb.velocity.normalized * speed;
+            }
+        } else {
+            Vector3 flatVel = new Vector3(playerRb.velocity.x, 0, playerRb.velocity.z);
+            if (flatVel.magnitude > speed) {
+                Vector3 limitedVel = flatVel.normalized * speed;
+                playerRb.velocity = new Vector3(limitedVel.x, playerRb.velocity.y, limitedVel.z);
+            }
+        }
     }
 
     void Move()
     {
-        Vector3 moveDir = (playerObj.right * hInput + playerObj.forward * vInput).normalized;
+        moveDir = (playerObj.right * hInput + playerObj.forward * vInput).normalized;
 
-        controller.Move(speed * Time.deltaTime * moveDir);
+        // On slope
+        if (isGrounded && IsOnSlope() && !exitingSlope) {
+            playerRb.AddForce(speed * 10f * GetSlopeMoveDir(), ForceMode.Force);
+
+            if (playerRb.velocity.y > 0) playerRb.AddForce(Vector3.down * 10f, ForceMode.Force);
+        }
+        // On ground
+        else if (isGrounded)
+            playerRb.AddForce(speed * 10f * moveDir, ForceMode.Force);
+        // In the air
+        else
+            playerRb.AddForce(speed * airMultiplier * 10f * moveDir, ForceMode.Force);
+
+        playerRb.useGravity = !IsOnSlope();
+    }
+
+    void Jump()
+    {
+        exitingSlope = true;
+
+        float jumpForce = Mathf.Sqrt(-2 * Physics.gravity.y * jumpHeight) * 1.3f;
+        playerRb.velocity = new Vector3(playerRb.velocity.x, jumpForce, playerRb.velocity.z);
+    }
+    void ResetJump()
+    {
+        exitingSlope = false;
+        readyToJump = true;
+    }
+
+    void StepClimb()
+    {
+        Vector3[] directions = {
+            moveDir,
+            Quaternion.AngleAxis(45, Vector3.up) * moveDir,
+            Quaternion.AngleAxis(-45, Vector3.up) * moveDir
+        };
+
+        foreach (Vector3 dir in directions) {
+            RaycastHit hitLower;
+            if (Physics.Raycast(lowerRay.position, dir, out hitLower, 0.75f)) {
+                float angle = Vector3.Angle(Vector3.up, hitLower.normal);
+                if (!Physics.Raycast(upperRay.position, dir, 1) && angle == 90) {
+                    playerRb.position -= new Vector3(0, -stepSmooth * Time.deltaTime, 0);
+                }
+            }
+        }
+    }
+
+    bool IsOnSlope()
+    {
+        if (Physics.SphereCast(transform.position, 0.5f, Vector3.down, out slopeHit, 1)) {
+            float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
+            if (angle <= maxClimbAngle && angle != 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+    Vector3 GetSlopeMoveDir()
+    {
+        return Vector3.ProjectOnPlane(moveDir, slopeHit.normal).normalized;
     }
 }

@@ -4,6 +4,7 @@ public class CameraController : MonoBehaviour
 {
     public Transform playerObj;
     public float sensitivity;
+    public Vector3 startCameraRotation;
 
     float xRotation;
     float yRotation;
@@ -12,6 +13,9 @@ public class CameraController : MonoBehaviour
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
+        xRotation = startCameraRotation.x;
+        yRotation = startCameraRotation.y;
+
     }
 
     // Update is called once per frame
