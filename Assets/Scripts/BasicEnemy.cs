@@ -5,39 +5,24 @@ using UnityEngine.AI;
 public class BasicEnemy : Enemy
 {
     Rigidbody rb;
+    bool charging;
 
     [Header("Basic Enemy Variables")]
     public float attackForce;
     public float attackKnockback;
-
-    //public float attackOffset;
-    //public float attackRadius;
-    //public LayerMask playerMask;
-
-    //int hitNum = 1;
-    //Vector3 center;
-    //Vector3 halfExtends;
+    public float attackTime;
 
     // Start is called before the first frame update
-    void Start()
+    new void Start()
     {
-        agent = GetComponent<NavMeshAgent>();
+        base.Start();
         rb = GetComponent<Rigidbody>();
-        radius = GetComponent<CapsuleCollider>().radius;
-
-        agent.speed = speed;
     }
 
     // Update is called once per frame
-    void Update()
+    new void Update()
     {
-        CalculateDirectionAndDistance();
-
-        if (!attacking) Move();
-        else {
-            agent.isStopped = true;
-            agent.velocity = Vector3.zero;
-        }
+        base.Update();
     }
 
     protected override IEnumerator Attack()
@@ -45,17 +30,14 @@ public class BasicEnemy : Enemy
         attacking = true;
         yield return new WaitForSeconds(attackDelay);
 
-        //center = transform.position + transform.forward * attackOffset;
-        //halfExtends = new Vector3(attackRadius, 0.5f, attackRadius);
-
-        //if (Physics.CheckBox(center, halfExtends, transform.rotation, playerMask)) {
-        //    Debug.Log("HIT" + hitNum);
-        //    hitNum++;
-        //}
-
         while (CanAttack()) {
+
             // Attack
             rb.AddForce(transform.forward * attackForce, ForceMode.Impulse);
+            charging = true;
+
+            yield return new WaitForSeconds(attackTime);
+            charging = false;
 
             yield return new WaitForSeconds(attackCooldown);
         }
@@ -65,8 +47,9 @@ public class BasicEnemy : Enemy
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Player")) {
-            
+        if (collision.gameObject.CompareTag("Player") && charging) {
+            Debug.Log("HIT");
+            playerRb.AddForce(enemyToPlayerDirFlat * attackKnockback + Vector3.up * (attackKnockback / 2f), ForceMode.Impulse);
         }
     }
 }

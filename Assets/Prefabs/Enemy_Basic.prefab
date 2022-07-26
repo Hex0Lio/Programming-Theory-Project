@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 3296296887578994117}
   - component: {fileID: 3296296887578994118}
   - component: {fileID: 3296296887578994119}
-  - component: {fileID: 3296296887578994116}
   m_Layer: 0
   m_Name: LookDir
   m_TagString: Untagged
@@ -82,19 +81,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &3296296887578994116
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3296296887578994114}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &3296296889621622092
 GameObject:
   m_ObjectHideFlags: 0
@@ -245,16 +231,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41a4d63e5aa9a5d41a5f0626bce2e6a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 0}
-  wallMask:
-    serializedVersion: 2
-    m_Bits: 128
+  playerObj: {fileID: 0}
+  playerRb: {fileID: 0}
   speed: 5
   damage: 0
   hp: 0
-  attackDelay: 0.5
-  attackCooldown: 1
+  attackDelay: 1
+  attackCooldown: 1.5
   maxAttackDistance: 1.5
   maxAttackLookAngle: 5
-  attackForce: 0
-  attackKnockback: 0
+  attackForce: 10
+  attackKnockback: 10
+  attackTime: 1
