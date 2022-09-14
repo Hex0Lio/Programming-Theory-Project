@@ -1,19 +1,27 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
+[RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider), typeof(NavMeshAgent))]
 public abstract class Enemy : MonoBehaviour
 {
-    protected NavMeshAgent agent;
+    public Transform enemyHeadPos;
+    public Transform playerHeadPos;
+    public Transform playerPos;
+    public Rigidbody playerRb;
 
+    protected NavMeshAgent agent;
+    protected Rigidbody rb;
+    
     protected float radius;
-    protected bool attacking = false;
+    protected float playerRadius = 0.5f;
+    protected float attackRadius;
+
     protected Vector3 enemyToPlayerDir;
     protected Vector3 enemyToPlayerDirFlat;
+    protected float enemyToPlayerDist;
     protected float enemyToPlayerDistFlat;
-
-    public Transform playerObj;
-    public Rigidbody playerRb;
 
     LayerMask blockMask;
 
@@ -28,24 +36,49 @@ public abstract class Enemy : MonoBehaviour
     public float maxAttackDistance;
     public float maxAttackLookAngle;
 
+    protected enum State
+    {
+        Moving,
+        Idle,
+        Attacking
+    }
+    protected State state;
+
     protected void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+        rb = GetComponent<Rigidbody>();
 
         radius = GetComponent<CapsuleCollider>().radius;
         agent.speed = speed;
 
         blockMask = LayerMask.GetMask("Ground") | LayerMask.GetMask("Wall");
+
+        state = State.Idle;
     }
 
     protected void Update()
     {
         CalculateDirectionAndDistance();
 
-        if (!attacking) Move();
-        else {
-            agent.isStopped = true;
-            agent.velocity = Vector3.zero;
+        if (state != State.Attacking) {
+            UpdateState();
+        }
+    }
+
+    protected void UpdateState()
+    {
+        if (IsWithinAttackDistance() && CanSeeThePlayer() && IsLookingAtPlayer()) {
+            state = State.Attacking;
+            Stop();
+            StartCoroutine(Attack());
+        } else if (IsWithinAttackDistance() && CanSeeThePlayer()) {
+            state = State.Idle;
+            Stop();
+            LookAtPlayer();
+        } else {
+            state = State.Moving;
+            MoveToPlayer();
         }
     }
 
@@ -53,40 +86,13 @@ public abstract class Enemy : MonoBehaviour
 
     protected void CalculateDirectionAndDistance()
     {
-        enemyToPlayerDir = (playerObj.position - transform.position).normalized;
+        enemyToPlayerDir = (playerHeadPos.position - enemyHeadPos.position).normalized;
+        enemyToPlayerDist = Vector3.Distance(playerHeadPos.position, enemyHeadPos.position) - radius - playerRadius;
 
         Vector3 enemyFlat = new Vector3(transform.position.x, 0, transform.position.z);
-        Vector3 playerFlat = new Vector3(playerObj.position.x, 0, playerObj.position.z);
+        Vector3 playerFlat = new Vector3(playerPos.position.x, 0, playerPos.position.z);
         enemyToPlayerDirFlat = (playerFlat - enemyFlat).normalized;
-        enemyToPlayerDistFlat = Vector3.Distance(playerFlat, enemyFlat) - radius - playerObj.GetComponent<CapsuleCollider>().radius;
-    }
-
-    protected void Move()
-    {
-        if (IsWithinAttackDistance() && CanSeeThePlayer()) {
-            Stop();
-
-            LookAtPlayer();
-
-            if (IsLookingAtPlayer()) {
-                // Attack
-                StartCoroutine(Attack());
-
-            }
-
-            return;
-        }
-        MoveToPlayer();
-    } 
-    /* Enemy can only attack if:
-        - Enemy is within the attack distance
-        - Enemy can see the player
-        - Enemy is facing the player
-    */
-
-    protected bool CanAttack()
-    {
-        return IsWithinAttackDistance() && CanSeeThePlayer() && IsLookingAtPlayer();
+        enemyToPlayerDistFlat = Vector3.Distance(playerFlat, enemyFlat) - radius - playerRadius;
     }
 
     bool IsWithinAttackDistance()
@@ -95,25 +101,24 @@ public abstract class Enemy : MonoBehaviour
     }
     bool CanSeeThePlayer()
     {
-        return !Physics.SphereCast(new Ray(transform.position, enemyToPlayerDir), 0.5f, enemyToPlayerDistFlat, blockMask);
+        return !Physics.SphereCast(new Ray(enemyHeadPos.position, enemyToPlayerDir), attackRadius, enemyToPlayerDist, blockMask);
     }
     bool IsLookingAtPlayer()
     {
         return Vector3.Dot(enemyToPlayerDirFlat, transform.forward) >= Mathf.Cos(Mathf.Deg2Rad * maxAttackLookAngle);
     }
 
-    void LookAtPlayer()
+    protected void LookAtPlayer()
     {
         float time = Vector3.Angle(enemyToPlayerDirFlat, transform.forward) / 90f;
-        iTween.LookTo(gameObject, new Vector3(playerObj.position.x, transform.position.y, playerObj.position.z), time);
+        iTween.LookTo(gameObject, new Vector3(playerPos.position.x, transform.position.y, playerPos.position.z), time);
     }
 
     void MoveToPlayer()
     {
         agent.isStopped = false;
-        agent.destination = playerObj.position;
+        agent.destination = playerPos.position;
     }
-
     void Stop()
     {
         agent.isStopped = true;

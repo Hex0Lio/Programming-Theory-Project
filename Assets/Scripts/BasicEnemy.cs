@@ -1,11 +1,10 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.AI;
 
 public class BasicEnemy : Enemy
 {
-    Rigidbody rb;
-    bool charging;
+    bool canDealDamage;
+    GameManager gameManager;
 
     [Header("Basic Enemy Variables")]
     public float attackForce;
@@ -15,8 +14,9 @@ public class BasicEnemy : Enemy
     // Start is called before the first frame update
     new void Start()
     {
+        gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
         base.Start();
-        rb = GetComponent<Rigidbody>();
+        attackRadius = radius;
     }
 
     // Update is called once per frame
@@ -27,29 +27,33 @@ public class BasicEnemy : Enemy
 
     protected override IEnumerator Attack()
     {
-        attacking = true;
         yield return new WaitForSeconds(attackDelay);
 
-        while (CanAttack()) {
-
+        do {
             // Attack
-            rb.AddForce(transform.forward * attackForce, ForceMode.Impulse);
-            charging = true;
+            rb.AddForce(transform.forward * attackForce + Vector3.up * enemyToPlayerDir.y, ForceMode.Impulse);
+            canDealDamage = true;
 
             yield return new WaitForSeconds(attackTime);
-            charging = false;
+            canDealDamage = false;
 
             yield return new WaitForSeconds(attackCooldown);
-        }
 
-        attacking = false;
+            UpdateState();
+        } while (state == State.Attacking);
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Player") && charging) {
-            Debug.Log("HIT");
+        if (collision.gameObject.CompareTag("Player") && canDealDamage) {
+            canDealDamage = false;
+
+            gameManager.TakeDamage(damage);
+
             playerRb.AddForce(enemyToPlayerDirFlat * attackKnockback + Vector3.up * (attackKnockback / 2f), ForceMode.Impulse);
+
+            rb.velocity = new Vector3(0, rb.velocity.y, 0);
+            rb.AddForce(-enemyToPlayerDir * 2, ForceMode.Impulse);
         }
     }
 }
