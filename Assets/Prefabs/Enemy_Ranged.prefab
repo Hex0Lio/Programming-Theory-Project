@@ -238,7 +238,7 @@ MonoBehaviour:
   playerRb: {fileID: 0}
   speed: 5
   damage: 2
-  hp: 3
+  hp: 2
   attackDelay: 0.5
   attackCooldown: 1
   maxAttackDistance: 20

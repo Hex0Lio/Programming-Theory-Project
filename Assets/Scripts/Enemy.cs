@@ -7,9 +7,9 @@ using UnityEngine.AI;
 public abstract class Enemy : MonoBehaviour
 {
     public Transform enemyHeadPos;
-    public Transform playerHeadPos;
-    public Transform playerPos;
-    public Rigidbody playerRb;
+    Transform playerHeadPos;
+    Transform playerPos;
+    protected Rigidbody playerRb;
 
     protected NavMeshAgent agent;
     protected Rigidbody rb;
@@ -46,6 +46,10 @@ public abstract class Enemy : MonoBehaviour
 
     protected void Start()
     {
+        playerRb = GameObject.Find("Player").GetComponent<Rigidbody>();
+        playerPos = GameObject.Find("PlayerPos").transform;
+        playerHeadPos = GameObject.Find("PlayerHeadPos").transform;
+
         agent = GetComponent<NavMeshAgent>();
         rb = GetComponent<Rigidbody>();
 

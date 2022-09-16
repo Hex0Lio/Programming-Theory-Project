@@ -2,14 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-using System;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] private int playerHP;
-    [SerializeField] private TextMeshProUGUI hpText;
-    [SerializeField] private GameObject pauseScreen;
+    [SerializeField] int playerHP;
+    [SerializeField] TextMeshProUGUI hpText;
+    [SerializeField] GameObject pauseScreen;
+    [SerializeField] GameObject gameOverScreen;
+    [SerializeField] GameObject buttons;
     bool isPaused;
+    bool gameOver;
 
     private void Start()
     {
@@ -17,7 +19,7 @@ public class GameManager : MonoBehaviour
     }
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape)) {
+        if (Input.GetKeyDown(KeyCode.Escape) && !gameOver) {
             if (!isPaused) {
                 PauseGame();
             } else {
@@ -33,25 +35,32 @@ public class GameManager : MonoBehaviour
         hpText.SetText("Player HP: " + playerHP);
     }
 
-    private void PauseGame()
+    void PauseGame()
     {
         isPaused = true;
         Cursor.lockState = CursorLockMode.None;
         Time.timeScale = 0f;
         pauseScreen.SetActive(true);
+        buttons.SetActive(true);
     }
 
-    private void ResumeGame()
+    void ResumeGame()
     {
         isPaused = false;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         Time.timeScale = 1f;
         pauseScreen.SetActive(false);
+        buttons.SetActive(false);
     }
 
-    private void GameOver()
+    void GameOver()
     {
-        Debug.Log("Game Over!");
+        gameOver = true;
+        Cursor.lockState = CursorLockMode.None;
+        Time.timeScale = 0f;
+        gameOverScreen.SetActive(true);
+        buttons.SetActive(true);
+        hpText.gameObject.SetActive(false);
     }
 }
