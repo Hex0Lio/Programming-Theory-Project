@@ -82,6 +82,12 @@ public abstract class Enemy : MonoBehaviour
         }
     }
 
+    public void TakDamage(int amount)
+    {
+        hp -= amount;
+        if (hp <= 0) Destroy(gameObject);
+    }
+
     protected abstract IEnumerator Attack();
 
     protected void CalculateDirectionAndDistance()

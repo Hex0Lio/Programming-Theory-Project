@@ -237,14 +237,13 @@ MonoBehaviour:
   playerPos: {fileID: 0}
   playerRb: {fileID: 0}
   speed: 5
-  damage: 0
-  hp: 0
-  attackDelay: 1
-  attackCooldown: 2
+  damage: 2
+  hp: 3
+  attackDelay: 0.5
+  attackCooldown: 1
   maxAttackDistance: 20
   maxAttackLookAngle: 1
   bulletPrefab: {fileID: 2650836483592290554, guid: d5efe7491e5a40b46b862bc19416e3af, type: 3}
-  shotPos: {fileID: 0}
   shotAmount: 5
   timeBetweenShots: 0.5
   recoilKnockback: 5
