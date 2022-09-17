@@ -7,16 +7,16 @@ public class BasicEnemy : Enemy
     GameManager gameManager;
 
     [Header("Basic Enemy Variables")]
-    public float attackForce;
-    public float attackKnockback;
-    public float attackTime;
+    [SerializeField] float attackForce;
+    [SerializeField] float attackKnockback;
+    [SerializeField] float attackTime;
 
     // Start is called before the first frame update
     new void Start()
     {
         gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
         base.Start();
-        attackRadius = radius;
+        attackRadius = Radius;
     }
 
     // Update is called once per frame

@@ -2,9 +2,9 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    public Transform playerObj;
-    public float sensitivity;
-    public Vector3 startCameraRotation;
+    [SerializeField] Transform playerObj;
+    [SerializeField] float sensitivity;
+    [SerializeField] Vector3 startCameraRotation;
 
     float xRotation;
     float yRotation;

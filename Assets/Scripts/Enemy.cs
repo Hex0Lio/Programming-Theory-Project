@@ -6,7 +6,7 @@ using UnityEngine.AI;
 [RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider), typeof(NavMeshAgent))]
 public abstract class Enemy : MonoBehaviour
 {
-    public Transform enemyHeadPos;
+    [SerializeField] protected Transform enemyHeadPos;
     Transform playerHeadPos;
     Transform playerPos;
     protected Rigidbody playerRb;
@@ -14,8 +14,12 @@ public abstract class Enemy : MonoBehaviour
     protected NavMeshAgent agent;
     protected Rigidbody rb;
     
-    protected float radius;
-    protected float playerRadius = 0.5f;
+    float radius;
+    protected float Radius {
+        get { return radius; }
+        private set { radius = value; }
+    }
+    protected const float playerRadius = 0.5f;
     protected float attackRadius;
 
     protected Vector3 enemyToPlayerDir;
@@ -26,15 +30,15 @@ public abstract class Enemy : MonoBehaviour
     LayerMask blockMask;
 
     [Header("Basic Variables")]
-    public float speed;
-    public int damage;
+    [SerializeField] protected float speed;
+    [SerializeField] protected int damage;
     public int hp;
 
     [Header("Attack Variables")]
-    public float attackDelay;
-    public float attackCooldown;
-    public float maxAttackDistance;
-    public float maxAttackLookAngle;
+    [SerializeField] protected float attackDelay;
+    [SerializeField] protected float attackCooldown;
+    [SerializeField] protected float maxAttackDistance;
+    [SerializeField] protected float maxAttackLookAngle;
 
     protected enum State
     {

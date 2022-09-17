@@ -2,36 +2,36 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public Transform playerObj;
+    [SerializeField] Transform playerObj;
     Rigidbody playerRb;
 
     [Header("Movement")]
-    public float speed;
-    public float groundDrag;
+    [SerializeField] float speed;
+    [SerializeField] float groundDrag;
     Vector3 moveDir;
     float hInput;
     float vInput;
 
     [Header("Ground Check")]
-    public LayerMask groundMask;
-    public float checkRadius;
-    public Transform checkPos;
+    [SerializeField] LayerMask groundMask;
+    [SerializeField] float checkRadius;
+    [SerializeField] Transform checkPos;
     bool isGrounded;
 
     [Header("Jumping")]
-    public float jumpHeight;
-    public float jumpCooldown;
-    public float airMultiplier;
+    [SerializeField] float jumpHeight;
+    [SerializeField] float jumpCooldown;
+    [SerializeField] float airMultiplier;
     bool readyToJump = true;
 
     [Header("Step Climb")]
-    public Transform lowerRay;
-    public Transform upperRay;
-    public float stepHeight;
-    public float stepSmooth;
+    [SerializeField] Transform lowerRay;
+    [SerializeField] Transform upperRay;
+    [SerializeField] float stepHeight;
+    [SerializeField] float stepSmooth;
 
     [Header("Slope Climb")]
-    public float maxClimbAngle;
+    [SerializeField] float maxClimbAngle;
     RaycastHit slopeHit;
     bool exitingSlope;
 

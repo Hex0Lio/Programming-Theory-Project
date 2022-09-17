@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
-    public float speed;
+    [SerializeField] float speed;
     public int damage;
     float radius;
     LayerMask blockMask;
@@ -29,7 +29,6 @@ public class Bullet : MonoBehaviour
 
     void ObjectHit(GameObject hit)
     {
-        Debug.Log("HIT: " + hit.name);
         Destroy(gameObject);
         if (hit.CompareTag("Player")) gameManager.TakeDamage(damage);
     }

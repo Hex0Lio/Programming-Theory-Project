@@ -4,10 +4,10 @@ using UnityEngine;
 public class RangedEnemy : Enemy
 {
     [Header("Ranged Enemy Variables")]
-    public GameObject bulletPrefab;
-    public int shotAmount;
-    public float timeBetweenShots;
-    public float recoilKnockback;
+    [SerializeField] GameObject bulletPrefab;
+    [SerializeField] int shotAmount;
+    [SerializeField] float timeBetweenShots;
+    [SerializeField] float recoilKnockback;
 
     // Start is called before the first frame update
     new void Start()
